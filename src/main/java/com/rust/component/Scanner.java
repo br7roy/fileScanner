@@ -19,20 +19,20 @@ public class Scanner {
     private static final String startIndex = "uid=";
     private static final String endIndex = ", sessionId=";
 
+    private static StringBuilder uidResult;
+
     private static List<Object> list = new ArrayList();
     private static List fiList = new ArrayList();
 
 
-
     public Scanner(String filePath) {
         file = new File(filePath);
-        System.out.println(txt2String());
+        txt2String();
     }
 
     private static String txt2String() {
         StringBuilder result = new StringBuilder();
-        StringBuilder uidResult = new StringBuilder();
-
+         uidResult = new StringBuilder();
         try {
             BufferedReader br = new BufferedReader(new FileReader(file));
             String s = null;
@@ -42,7 +42,7 @@ public class Scanner {
                     try {
                         list.add(s.substring(s.indexOf(startIndex)).substring(0, s.substring(s.indexOf(startIndex)).indexOf(",")));
                     } catch (RuntimeException e) {
-//                        System.out.println("检测到特殊日志无逗号结尾");
+                        System.out.println("检测到特殊日志无逗号结尾");
                         list.add(s.substring(s.indexOf(startIndex)));
                     }
                 }
@@ -50,9 +50,22 @@ public class Scanner {
             br.close();
         } catch (Exception e) {
         }
-        System.out.println(result.toString());
+        mixCount(uidResult);
+
         return uidResult.toString();
     }
+
+    private static void mixCount(StringBuilder stringBuilder) {
+
+
+
+
+
+
+
+
+    }
+
 
     public static List count(List list) {
         Map<Object, Integer> map = new HashMap<>();
@@ -77,34 +90,22 @@ public class Scanner {
     }
 
     public static void outPut(List list, String outputFile) throws IOException {
-
         FileOutputStream fileOutputStream = new FileOutputStream(outputFile);
-
         PrintWriter printWriter = new PrintWriter(fileOutputStream);
-
         for (Object o : list) {
             printWriter.write(o.toString() + "\r\n");
         }
         printWriter.close();
         fileOutputStream.close();
-
     }
 
 
-
     public static void main(String[] args) throws IOException {
-        String filePath = "/test.log";
-        String genPath = "/result.log";
-
-
-
-
-//        new Scanner(filePath);
-
-//        String transTr = txt2String();
-//        System.out.println(transTr);
-
-
+        String filePath = "C:\\Users\\Administrator\\Desktop\\test.log";
+        String genPath = "C:\\Users\\Administrator\\Desktop\\result.log";
+        new Scanner(filePath);
+        System.out.println(uidResult);
+//        System.out.println(list);
 
         //控制台输出
 //        System.out.println(mix(list, count(list)));
