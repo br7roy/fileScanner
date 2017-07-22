@@ -69,8 +69,9 @@ public class LogMonitor {
                         if (flg != 0) {
                             System.out.println("检测到特殊日志无逗号结尾");
                             uidResult.append(System.lineSeparator()).append(s.substring(s.indexOf(stK2))).append(",");
+                            ++flg;
                         }
-                        ++flg;
+
                     }
                 }
             }
