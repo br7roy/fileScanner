@@ -29,6 +29,7 @@ public class LogMonitor {
 
     private static final String stK1 = "[c20,CLIENT_INFO]";
     private static final String stK2 = "uid=";
+    private static final String reg = "\r\n";
 
     private static StringBuilder uidResult;
 
@@ -99,11 +100,9 @@ public class LogMonitor {
         });
         Set<String> setData = new HashSet<>();
         Collections.addAll(setData, strings);
-        //计算相同数据出现的次数
         Map<String, Integer> countMap = new HashMap<>();
         for (String string : strings) {
             if (countMap.containsKey(string)) {
-                //如果存在那么获取value自增
                 int count = countMap.get(string) + 1;
                 countMap.put(string, count);
             } else {
@@ -147,7 +146,7 @@ public class LogMonitor {
         FileOutputStream fileOutputStream = new FileOutputStream(outPutLogPath);
         PrintWriter printWriter = new PrintWriter(fileOutputStream);
         for (Map.Entry<?, ?> stringEntry : lastMap.entrySet()) {
-            printWriter.write(stringEntry.getKey() + ":" + stringEntry.getValue());
+            printWriter.write(stringEntry.getKey().toString().replace(reg, "") + ":" + stringEntry.getValue().toString().replace(reg, "") + reg);
         }
         printWriter.close();
         fileOutputStream.close();
