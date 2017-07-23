@@ -10,6 +10,10 @@ import java.util.*;
  * Description:
  */
 public class LogMonitor {
+
+
+
+
     public static void main(String[] args) throws IOException {
         //原日志路径
         String filePath = "C:\\Users\\Administrator\\Desktop\\test.log";
@@ -23,6 +27,17 @@ public class LogMonitor {
         logMonitor.outPutLog();
 
     }
+
+
+
+
+
+
+
+
+
+
+
 
     private static File file;
     private static String outPutLogPath;
@@ -62,22 +77,20 @@ public class LogMonitor {
                         if (uidResult == null) {
                             uidResult.append(s.substring(s.indexOf(stK2)).substring(0, s.substring(s.indexOf(stK2))
                                     .indexOf(","))).append(",");
-                        } else {
-                            uidResult.append(System.lineSeparator()).append(s.substring(s.indexOf(stK2))
-                                    .substring(0, s.substring(s.indexOf(stK2)).indexOf(","))).append(",");
-                        }
+                        } else uidResult.append(System.lineSeparator()).append(s.substring(s.indexOf(stK2))
+                                .substring(0, s.substring(s.indexOf(stK2)).indexOf(","))).append(",");
                     } catch (RuntimeException e) {
                         if (flg != 0) {
                             System.out.println("检测到特殊日志无逗号结尾");
                             uidResult.append(System.lineSeparator()).append(s.substring(s.indexOf(stK2))).append(",");
                             ++flg;
                         }
-
                     }
                 }
             }
             br.close();
-        } catch (Exception ignored) {
+        } catch (IOException ignored) {
+            System.out.println("读写异常");
         }
     }
 
