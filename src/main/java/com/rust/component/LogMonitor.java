@@ -39,6 +39,17 @@ public class LogMonitor {
 
 
 
+ 
+
+
+
+
+
+
+
+
+
+
     private static File file;
     private static String outPutLogPath;
 
@@ -48,8 +59,8 @@ public class LogMonitor {
 
     private static StringBuilder uidResult;
 
-    private static Map<String, String> uidMap = new TreeMap<>();
-    private static Map<String, String> lastMap = new LinkedHashMap<>();
+    private static Map<String, Integer> uidMap = new TreeMap<>();
+    private static Map<String, Integer> lastMap = new LinkedHashMap<>();
 
 
     private LogMonitor(String filePath, String _outPath) {
@@ -123,7 +134,7 @@ public class LogMonitor {
             }
         }
         for (String data : setData) {
-            uidMap.put(data + ",count", String.valueOf(countMap.get(data)));
+            uidMap.put(data + ",count", countMap.get(data));
         }
         sortPushConsole();
     }
@@ -132,17 +143,17 @@ public class LogMonitor {
      * 将日志降序排列
      */
     private void sortPushConsole() {
-        List<Map.Entry<String, String>> mapList = null;
+        List<Map.Entry<String, Integer>> mapList = null;
         mapList = new ArrayList<>(uidMap.entrySet());
-        Collections.sort(mapList, new Comparator<Map.Entry<String, String>>() {
+        Collections.sort(mapList, new Comparator<Map.Entry<String, Integer>>() {
             @Override
-            public int compare(Map.Entry<String, String> o1, Map.Entry<String, String> o2) {
+            public int compare(Map.Entry<String, Integer> o1, Map.Entry<String, Integer> o2) {
                 return o2.getValue().compareTo(o1.getValue());
             }
 
         });
-        for (Map.Entry<String, String> stringStringEntry : mapList) {
-            lastMap.put(stringStringEntry.getKey(), stringStringEntry.getValue());
+        for (Map.Entry<String, Integer> stringStringEntry : mapList) {
+            lastMap.put(stringStringEntry.getKey(), stringStringEntry.getValue().intValue());
         }
         System.out.println("lastMap:" + lastMap);
     }
