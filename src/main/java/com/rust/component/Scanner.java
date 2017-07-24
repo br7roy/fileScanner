@@ -12,6 +12,23 @@ import java.util.*;
 public class Scanner {
 
 
+
+    public static void main(String[] args) throws IOException {
+        String filePath = "C:\\Users\\Administrator\\Desktop\\test.log";
+        String genPath = "C:\\Users\\Administrator\\Desktop\\result.log";
+        new Scanner(filePath);
+        System.out.println(uidResult);
+//        System.out.println(list);
+
+        //控制台输出
+//        System.out.println(mix(list, count(list)));
+        //生成文件
+//        outPut(mix(list, count(list)), genPath);
+
+
+    }
+
+
     private static File file;
 
     private static final String stK1 = "[c20,CLIENT_INFO]";
@@ -100,18 +117,5 @@ public class Scanner {
     }
 
 
-    public static void main(String[] args) throws IOException {
-        String filePath = "C:\\Users\\Administrator\\Desktop\\test.log";
-        String genPath = "C:\\Users\\Administrator\\Desktop\\result.log";
-        new Scanner(filePath);
-        System.out.println(uidResult);
-//        System.out.println(list);
 
-        //控制台输出
-//        System.out.println(mix(list, count(list)));
-        //生成文件
-//        outPut(mix(list, count(list)), genPath);
-
-
-    }
 }
