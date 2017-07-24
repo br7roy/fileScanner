@@ -6,12 +6,15 @@ import java.nio.file.Paths;
 import java.util.*;
 
 /**
- * FileName: LogMonitor Author: Rust Date: 2017/7/21 Description:
+ * FileName: LogMonitor
+ * Author: Rust
+ * Date: 2017/7/21
+ * Description:
  */
 public class LogMonitor2 {
     public static void main(String[] args) throws IOException {
         // 原日志路径
-        String filePath = "C:\\Users\\Administrator\\Desktop\\test2.log";
+        String filePath = "C:\\Users\\Administrator\\Desktop\\test5.log";
         // 生成日志路径
         String genPath = "C:\\Users\\Administrator\\Desktop\\result.log";
         LogMonitor2 logMonitor = new LogMonitor2(filePath, genPath);
@@ -114,22 +117,42 @@ public class LogMonitor2 {
     /**
      * 将日志降序排列
      */
-    private void sortPushConsole() {
-        List<Map.Entry<String, Integer>> mapList = null;
-        mapList = new ArrayList<>(finalMap.entrySet());
-        Collections.sort(mapList, new Comparator<Map.Entry<String, Integer>>() {
-            @Override
-            public int compare(Map.Entry<String, Integer> o1, Map.Entry<String, Integer> o2) {
-                return o2.getValue().compareTo(o1.getValue());
-            }
 
-        });
-        for (Map.Entry<String, Integer> stringStringEntry : mapList) {
-            aaMap.put(stringStringEntry.getKey().replace("\r\n", ""), stringStringEntry.getValue());
+
+        public   Map<String, Integer>
+        sortPushConsole()
+        {
+            List<Map.Entry<String, Integer>> list =
+                    new LinkedList<Map.Entry<String, Integer>>( finalMap.entrySet() );
+            list.sort(new Comparator<Map.Entry<String, Integer>>() {
+                public int compare(Map.Entry<String, Integer> o1, Map.Entry<String, Integer> o2) {
+                    return (o2.getValue()).compareTo(o1.getValue());
+                }
+            });
+
+            for (Map.Entry<String, Integer> entry : list)
+            {
+                aaMap.put( entry.getKey(), entry.getValue() );
+            }
+            return aaMap;
         }
-//		System.out.println("lastMap:" + lastMap);
-//        addUserId();
-    }
+
+
+
+
+
+//        List<Map.Entry<String, Integer>> mapList = null;
+//        mapList = new ArrayList<>(finalMap.entrySet());
+//        Collections.sort(mapList, new Comparator<Map.Entry<String, Integer>>() {
+//            @Override
+//            public int compare(Map.Entry<String, Integer> o1, Map.Entry<String, Integer> o2) {
+//                return o2.getValue().compareTo(o1.getValue());
+//            }
+//
+//        });
+//        for (Map.Entry<String, Integer> stringStringEntry : mapList) {
+//            aaMap.put(stringStringEntry.getKey().replace("\r\n", ""), stringStringEntry.getValue());
+//        }
 
     private void addUserId() {
         // lastMap,retMap

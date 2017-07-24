@@ -16,7 +16,7 @@ public class LogMonitor {
 
     public static void main(String[] args) throws IOException {
         //原日志路径
-        String filePath = "C:\\Users\\Administrator\\Desktop\\test.log";
+        String filePath = "C:\\Users\\Administrator\\Desktop\\test5.log";
         //生成日志路径
         String genPath = "C:\\Users\\Administrator\\Desktop\\result.log";
         LogMonitor logMonitor = new LogMonitor(filePath, genPath);
@@ -52,6 +52,7 @@ public class LogMonitor {
 
     private static File file;
     private static String outPutLogPath;
+    private static boolean checkInOrOut = true;
 
     private static final String stK1 = "[c20,CLIENT_INFO]";
     private static final String stK2 = "uid=";
@@ -63,10 +64,10 @@ public class LogMonitor {
     private static Map<String, Integer> lastMap = new LinkedHashMap<>();
 
 
-    private LogMonitor(String filePath, String _outPath) {
-        file = new File(filePath);
+    private LogMonitor(String _filePath, String _outPath) {
+        file = new File(_filePath);
         if (!file.isFile()) {
-            throw new RuntimeException("尝试从[" + filePath + "]读取原日志文件失败，请重新确认路径");
+            throw new RuntimeException("尝试从[" + _filePath + "]读取原日志文件失败，请重新确认路径");
         }
         outPutLogPath = _outPath;
         filterLog();
@@ -145,7 +146,7 @@ public class LogMonitor {
     private void sortPushConsole() {
         List<Map.Entry<String, Integer>> mapList = null;
         mapList = new ArrayList<>(uidMap.entrySet());
-        Collections.sort(mapList, new Comparator<Map.Entry<String, Integer>>() {
+        mapList.sort(new Comparator<Map.Entry<String, Integer>>() {
             @Override
             public int compare(Map.Entry<String, Integer> o1, Map.Entry<String, Integer> o2) {
                 return o2.getValue().compareTo(o1.getValue());
@@ -174,6 +175,7 @@ public class LogMonitor {
         }
         printWriter.close();
         fileOutputStream.close();
+        System.out.println(String.format("输出日志成功，路径：[%s]", outPutLogPath));
     }
 
 
