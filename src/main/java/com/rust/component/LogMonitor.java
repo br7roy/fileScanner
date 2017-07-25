@@ -28,28 +28,6 @@ public class LogMonitor {
 
     }
 
-
-
-
-
-
-
-
-
-
-
-
- 
-
-
-
-
-
-
-
-
-
-
     private static File file;
     private static String outPutLogPath;
     private static boolean checkInOrOut = true;
