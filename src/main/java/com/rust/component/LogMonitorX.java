@@ -57,7 +57,7 @@ public class LogMonitorX {
 
         try {
             String line,uid="",costId="";
-            String uidReg = "(?<=uid=)[^=,]*",coutReg="(?<=custId=)[\\d]*";
+            String uidReg = "(?<=uid=)[^=,]*",coutReg="(?<=custId=)[\\d]{2,}";
             Pattern uidPa = Pattern.compile(uidReg);
             Pattern constPa = Pattern.compile(coutReg);
             Matcher matcher;
@@ -129,10 +129,11 @@ public class LogMonitorX {
             System.out.println(costMap.size());
             for (String uid : sortMap.keySet()) {
                 line.append("uid:"+uid+";");
+                line.append("count:"+sortMap.get(uid)+";");
                 if (costMap.get(uid) != null) {
-                    line.append("costId:"+Arrays.toString(costMap.get(uid).toArray())+";");
+                    line.append("costId:"+Arrays.toString(costMap.get(uid).toArray())+";"+"\r\n");
                 }
-                line.append("count:"+sortMap.get(uid)+"\r\n");
+
             }
         }
         writer.write(line.toString());
