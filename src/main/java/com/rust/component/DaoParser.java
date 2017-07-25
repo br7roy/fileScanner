@@ -53,7 +53,7 @@ public class DaoParser {
 
             Comparator<Map.Entry<String, int[]>> comparator = (left, right) -> left.getValue()[0] - right.getValue()[0];
             List<Map.Entry<String, int[]>> retList = map.entrySet().stream().sorted(comparator).collect(Collectors.toList());
-            List<String> lineList = retList.stream().map(entry -> "method=" + entry.getKey() + ", count=" + entry.getValue()[0] + ", timeSum=" + entry.getValue()[1]+"\r\n").collect(Collectors.toList());
+            List<String> lineList = retList.stream().map(entry -> "method=" + entry.getKey().replace("\r\n", "") + ", count=" + entry.getValue()[0] + ", timeSum=" + entry.getValue()[1] ).collect(Collectors.toList());
 
 
             Files.write(Paths.get(outFile),lineList, StandardOpenOption.CREATE,StandardOpenOption.WRITE);
