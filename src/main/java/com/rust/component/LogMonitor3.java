@@ -33,7 +33,7 @@ public class LogMonitor3 {
     private void readLogFile() {
         List<String> list = new ArrayList<>();
         try {
-             list = Files.readAllLines(Paths.get(inPutPath), Charset.forName("UTF-8"));
+            list = Files.readAllLines(Paths.get(inPutPath), Charset.forName("UTF-8"));
         } catch (IOException e) {
             System.out.println("读取文件路径错误");
         }
@@ -47,20 +47,13 @@ public class LogMonitor3 {
             }
 
 
-
-
-
-
-
-
         }
 
-
-
-
-
+//        Map.Entry.comparingByValue((Comparator.comparing(Object::toString)));
     }
-
+    interface HAHA{
+        String getValue();
+    }
     public static void main(String[] args) {
         // 原日志路径
         String filePath = "C:\\Users\\Administrator\\Desktop\\test5.log";
