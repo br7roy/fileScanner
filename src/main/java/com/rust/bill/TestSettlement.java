@@ -13,7 +13,7 @@ import java.lang.reflect.Field;
 import java.nio.charset.Charset;
 import java.util.List;
 
-import static com.sun.xml.internal.ws.commons.xmlutil.Converter.UTF_8;
+import static com.sun.xml.internal.org.jvnet.fastinfoset.FastInfosetSerializer.UTF_8;
 
 
 /**
@@ -49,7 +49,9 @@ public class TestSettlement {
                                     fields[i].set(obj, temp[i]);
                                 }
                                 settleBillBeans.add(SettleBillBean.class.cast(obj));
-                            } catch (InstantiationException | IllegalAccessException e) {
+                            } catch (InstantiationException e) {
+                                e.printStackTrace();
+                            } catch (IllegalAccessException e) {
                                 e.printStackTrace();
                             }
                     }
