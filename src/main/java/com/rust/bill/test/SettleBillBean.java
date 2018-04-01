@@ -2,10 +2,10 @@
  * 壹钱包
  * Copyright (c) 2013-2018 壹钱包版权所有.
  */
-package com.rust.bill;
+package com.rust.bill.test;
 
 /**
- *
+ *清结算系统结算日志筛选关键字
  * @author FUTANGHANG004
  * @version $Id: SettleBillBean, v 0.1 2018/3/27  FUTANGHANG004 Exp $
  */
@@ -53,7 +53,7 @@ public class SettleBillBean {
 	/**
 	 * 结算日期
 	 */
-	private String settlementDateTime;
+	private String settleDate;
 
 	/**
 	 * 会员号
@@ -175,12 +175,12 @@ public class SettleBillBean {
         this.bussinessScense = bussinessScense;
     }
 
-    public String getSettlementDateTime() {
-        return settlementDateTime;
+    public String getSettleDate() {
+        return settleDate;
     }
 
-    public void setSettlementDateTime(String settlementDateTime) {
-        this.settlementDateTime = settlementDateTime;
+    public void setSettleDate(String settleDate) {
+        this.settleDate = settleDate;
     }
 
     public String getMemberNo() {
@@ -282,7 +282,7 @@ public class SettleBillBean {
                 ", amountPayout='" + amountPayout + '\'' +
                 ", feeId='" + feeId + '\'' +
                 ", bussinessScense='" + bussinessScense + '\'' +
-                ", settlementDateTime='" + settlementDateTime + '\'' +
+                ", settleDate='" + settleDate + '\'' +
                 ", memberNo='" + memberNo + '\'' +
                 ", incomeAmt='" + incomeAmt + '\'' +
                 ", reverseCoreTxnSsn='" + reverseCoreTxnSsn + '\'' +
