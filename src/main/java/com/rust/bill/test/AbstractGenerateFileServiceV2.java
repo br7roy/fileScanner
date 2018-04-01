@@ -277,6 +277,21 @@ public abstract class AbstractGenerateFileServiceV2<T> implements Constant, IBil
 		return errMsg.toString();
 	}
 
+    protected void writeRaf(RandomAccessFile raf, String data, boolean force) throws IOException {
+        doWriteRaf(raf, data, force);
+    }
+    protected void writeRaf(RandomAccessFile raf, String data) throws IOException {
+        doWriteRaf(raf, data, true);
+    }
+
+    private void doWriteRaf(RandomAccessFile raf, String data, boolean force) throws IOException {
+        if (force) {
+            raf.write((data+FILE_SPLIT_SIGN).getBytes("GBK"));
+        }else {
+            raf.write(data.getBytes("GBK"));
+        }
+    }
+
     protected  void write(BufferedOutputStream bos, String data,boolean force) throws IOException {
         doWriteNewLine(bos, data, force);
     }

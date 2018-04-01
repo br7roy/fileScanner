@@ -5,12 +5,13 @@ package com.rust.bill.test;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
-import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 import org.apache.commons.lang.StringUtils;
 import sun.misc.Cleaner;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
@@ -22,7 +23,6 @@ import java.security.PrivilegedAction;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
-import java.util.List;
 
 import static com.rust.bill.test.BillStyleConstants.DETAIL_COLUMN;
 import static com.rust.bill.test.BillStyleConstants.TOTAL_COLUMN;
@@ -67,15 +67,20 @@ public class Bill25FileGenerateServiceImpl extends AbstractGenerateFileServiceV2
 
     @Override
     protected void filterDataAndWriteCvs(Iterator<File> fileIterator, Bill25 form, File destFile) throws Exception {
+
         int allocate = 20000;
-        FileOutputStream fos = new FileOutputStream(destFile);
-        BufferedOutputStream bos = new BufferedOutputStream(fos);
+
+        RandomAccessFile raf  = new RandomAccessFile(destFile, "rw");
+
+        // FileOutputStream fos = new FileOutputStream(destFile);
+        // BufferedOutputStream bos = new BufferedOutputStream(fos);
         BigDecimal totalFeeAmt = ZERO;
         BigDecimal totalOrderAmt = ZERO;
 
+        reserveSpace(raf);
 
-        bos.write(Arrays.toString(DETAIL_COLUMN).substring(1, Arrays.toString(DETAIL_COLUMN).length() - 1).getBytes("GBK"));
-        bos.write("\r\n".getBytes("GBK"));
+        writeRaf(raf,Arrays.toString(DETAIL_COLUMN).substring(1, Arrays.toString(DETAIL_COLUMN).length() - 1),false);
+        writeRaf(raf, "\n", false);
         do {
             try {
                 RandomAccessFile fis = new RandomAccessFile(fileIterator.next(), "rw");
@@ -108,38 +113,37 @@ public class Bill25FileGenerateServiceImpl extends AbstractGenerateFileServiceV2
                                 try {
                                     String[] temp = line.trim().replace("\t", "").split(",");
 
-
                                     // 商户号
-                                    write(bos, form.getMerchantNo());
+                                    writeRaf(raf, form.getMerchantNo());
                                     //结算日期
-                                    write(bos, temp[8]);
+                                    writeRaf(raf, temp[8]);
                                     //商户订单号
-                                    write(bos, temp[14]);
+                                    writeRaf(raf, temp[14]);
 
                                     String yqbTxnSsn = temp[0];
                                     // TODO: Rust 2018/4/1 添加搜索方法，暂时写死
                                     String merchantOrderNo = "123123123";
 
                                     //商户订单号
-                                    write(bos, merchantOrderNo);
+                                    writeRaf(raf, merchantOrderNo);
                                     //YQB交易流水号
-                                    write(bos, yqbTxnSsn);
+                                    writeRaf(raf, yqbTxnSsn);
                                     //交易时间
-                                    write(bos, temp[1]);
+                                    writeRaf(raf, temp[1]);
                                     // 订单金额=收入金额(settleBillBeans.get(i).getIncomeAmt())
                                     BigDecimal orderAmt = DecimalUtil.format2BigDecimal(temp[10]);
-                                    write(bos, orderAmt.toString());
+                                    writeRaf(raf, orderAmt.toString());
                                     // 手续费=收入金额(settleBillBeans.get(i).getIncomeAmt())-返还手续费(settleBillBeans.get(i).getReturnFee())
                                     BigDecimal feeAmt = DecimalUtil.subtract(temp[10], temp[12]);
-                                    write(bos, feeAmt.toString());
+                                    writeRaf(raf, feeAmt.toString());
                                     // 结算金额=参与结算金额(settleBillBeans.get(i).getParticipateSettlementAmount())+返还手续费(settleBillBeans.get(i).getReturnFee())-收入金额(settleBillBeans.get(i).getIncomeAmt())
-                                    write(bos, StringUtil.mix(temp[4], temp[12], temp[10]), false);
+                                    writeRaf(raf, StringUtil.mix(temp[4], temp[12], temp[10]), false);
                                     totalFeeAmt = totalFeeAmt.add(feeAmt);
                                     totalOrderAmt = totalOrderAmt.add(orderAmt);
                                 } catch (Exception e) {
                                     e.printStackTrace();
                                 }
-                                write(bos, "\r\n", false);
+                                writeRaf(raf, "\n", false);
                             }
                         }
 
@@ -168,19 +172,30 @@ public class Bill25FileGenerateServiceImpl extends AbstractGenerateFileServiceV2
         } while (fileIterator.hasNext());
 
         //向头部写入总计
-        write(bos, "\r\n");
-        write(bos, Arrays.toString(TOTAL_COLUMN).substring(1, Arrays.toString(TOTAL_COLUMN).length() - 1));
-        write(bos, "\r\n");
-        write(bos, form.getMerchantNo());
-        write(bos, form.getStartDate());
-        write(bos, form.getEndDate());
-        write(bos, "元");
-        write(bos, "人民币");
-        write(bos, totalOrderAmt.toString());
-        write(bos, totalFeeAmt.toString());
-        write(bos, DateUtil.getCurrentDateTime(PATTERN_FULL_5));
-        bos.close();
+        raf.seek(0L);
 
+        // writeRaf(raf, "\r\n");
+        writeRaf(raf, Arrays.toString(TOTAL_COLUMN).substring(1, Arrays.toString(TOTAL_COLUMN).length() - 1), false);
+        writeRaf(raf, "\n", false);
+        writeRaf(raf, form.getMerchantNo());
+        writeRaf(raf, form.getStartDate());
+        writeRaf(raf, form.getEndDate());
+        writeRaf(raf, "元");
+        writeRaf(raf, "人民币");
+        writeRaf(raf, totalOrderAmt.toString());
+        writeRaf(raf, totalFeeAmt.toString());
+        writeRaf(raf, DateUtil.getCurrentDateTime(PATTERN_FULL_5));
+        raf.close();
+
+    }
+
+    private void reserveSpace(RandomAccessFile raf) throws IOException {
+        writeRaf(raf, "    ,    ,    ,    ,    ");
+        writeRaf(raf, "\n",false);
+        writeRaf(raf, "    ,    ,    ,    ,    ,    ,    ,    ");
+        writeRaf(raf, "\n",false);
+        writeRaf(raf, "    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,        ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,        ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,        ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,        ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,        ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,        ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,        ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,        ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,        ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,        ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,        ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,        ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,        ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,        ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,        ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,        ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ,    ");
+        writeRaf(raf, "\n",false);
     }
 
     private void unMap(final MappedByteBuffer mappedByteBuffer) {
@@ -205,61 +220,6 @@ public class Bill25FileGenerateServiceImpl extends AbstractGenerateFileServiceV2
     }
 
 
-    protected List<DetailSettleBillBean> genDetailList(List<SettleBillBean> settleBillBeans, Bill25 bill) {
-        // TODO: Rust 2018/3/29 遍历 ,通过壹钱包交易号查找收单订单号，公式运算
-        List<DetailSettleBillBean> detailSettleBillBeans = Lists.newArrayList();
-        for (int i = 0; i < settleBillBeans.size(); i++) {
-            DetailSettleBillBean detailSettleBillBean = new DetailSettleBillBean();
-            String coreTxnSsn = settleBillBeans.get(i).getTransCoreTxnSsn();
-            if (StringUtils.isEmpty(coreTxnSsn)) {
-                throw new IllegalArgumentException("data wrong coreTxnSsn can not be null !");
-            }
-            // TODO: 通过壹钱包交易号查找收单订单号
-            // 获取收单订单号
-            String yqbTxnSsn = settleBillBeans.get(i).getTransCoreTxnSsn();
-            if (StringUtils.isEmpty(yqbTxnSsn)) {
-                throw new RuntimeException("empty yqbTxnSsn");
-            }
-
-            String checkoutOrderNo = "testCheckOutNo";
-            if (StringUtils.isEmpty(checkoutOrderNo)) {
-                throw new RuntimeException("empty checkoutOrderNo");
-            }
-
-            detailSettleBillBean.setMerchantOrderNo(settleBillBeans.get(i).getMerchantOrderNo());
-            detailSettleBillBean.setCheckOutOrderNo(checkoutOrderNo);
-            detailSettleBillBean.setMerchantNo(bill.getMerchantNo());
-            // 手续费=收入金额(settleBillBeans.get(i).getIncomeAmt())-返还手续费(settleBillBeans.get(i).getReturnFee())
-            detailSettleBillBean.setFeeAmt(DecimalUtil.subtract(settleBillBeans.get(i).getIncomeAmt(), settleBillBeans.get(i).getReturnFee()));
-            // 订单金额=收入金额(settleBillBeans.get(i).getIncomeAmt())
-            detailSettleBillBean.setOrderAmt(DecimalUtil.format2BigDecimal(settleBillBeans.get(i).getIncomeAmt()));
-            // 结算金额=参与结算金额(settleBillBeans.get(i).getParticipateSettlementAmount())+返还手续费(settleBillBeans.get(i).getReturnFee())-收入金额(settleBillBeans.get(i).getIncomeAmt())
-            detailSettleBillBean.setSettleAmt(StringUtil.mix(settleBillBeans.get(i).getParticipateSettlementAmount(), settleBillBeans.get(i).getReturnFee(), settleBillBeans.get(i).getIncomeAmt()));
-            detailSettleBillBean.setSettleDate(settleBillBeans.get(i).getSettleDate());
-            detailSettleBillBean.setTransDateTime(settleBillBeans.get(i).getTransDateTime());
-            detailSettleBillBean.setYqbTransNo(settleBillBeans.get(i).getTransCoreTxnSsn());
-            detailSettleBillBeans.add(detailSettleBillBean);
-        }
-        return detailSettleBillBeans;
-    }
-
-    protected TotalSettleBillBean genTotalData(List<DetailSettleBillBean> detailBills, Bill25 bill) {
-        TotalSettleBillBean totalSettleBillBean = new TotalSettleBillBean();
-        totalSettleBillBean.setStartDate(bill.getStartDate());
-        totalSettleBillBean.setEndDate(bill.getEndDate());
-        totalSettleBillBean.setMerchantNo(bill.getMerchantNo());
-        totalSettleBillBean.setFileCrtDateTime(DateUtil.getCurrentDateTime(PATTERN_FULL_5));
-        BigDecimal totalFeeAmt = ZERO;
-        BigDecimal totalOrderAmt = ZERO;
-        for (int i = 0; i < detailBills.size(); i++) {
-            totalFeeAmt = totalFeeAmt.add(detailBills.get(i).getFeeAmt());
-            totalOrderAmt = totalOrderAmt.add(detailBills.get(i).getOrderAmt());
-        }
-        totalSettleBillBean.setTotalFeeAmt(totalFeeAmt.toString());
-        totalSettleBillBean.setOrderTotalAmt(totalOrderAmt.toString());
-
-        return totalSettleBillBean;
-    }
 
     @Override
     public Bill25 getForm(MspBillDownloadRecordDTO dto) {
