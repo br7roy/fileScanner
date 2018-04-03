@@ -4,8 +4,9 @@
 * Author:   Rust
 * Date:     2018/4/4 0:05
 */
-package com.rust.bill.test;
+package com.rust.bill;
 
+import com.rust.bill.test.Bill25;
 import org.junit.Test;
 
 import java.io.File;
