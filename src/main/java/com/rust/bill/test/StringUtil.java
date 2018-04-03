@@ -21,4 +21,13 @@ public class StringUtil {
         BigDecimal bigDecimal2 = new BigDecimal(c);
         return bigDecimal.add(bigDecimal1).subtract(bigDecimal2).toString();
     }
+    public static String subtract(String a, BigDecimal b) {
+        BigDecimal bigDecimal = new BigDecimal(a);
+        return bigDecimal.subtract(b).toString();
+    }
+    public static String subtract(String a, String b) {
+        BigDecimal ba = new BigDecimal(a);
+        BigDecimal bb = new BigDecimal(b);
+        return ba.subtract(bb).toString();
+    }
 }

@@ -1,17 +1,28 @@
 package com.rust.bill.test;
 
-import com.google.common.collect.FluentIterable;
-import com.google.common.io.Files;
-import org.apache.commons.lang.StringUtils;
-
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang.StringUtils;
+
+import com.google.common.base.Stopwatch;
+import com.google.common.io.Files;
 
 import static com.rust.bill.test.BillStyleConstants.DETAIL_COLUMN;
 import static com.rust.bill.test.BillStyleConstants.TOTAL_COLUMN;
@@ -38,7 +49,12 @@ public abstract class AbstractGenerateFileServiceV2<T> implements Constant, IBil
 	 * @throws Exception
 	 */
 	public void generateFile(String recordId) throws Exception {
-		//校验任务是否存在，获取账单类型及商户号
+
+        Stopwatch totalWatch = Stopwatch.createStarted();
+
+        Stopwatch watch = Stopwatch.createStarted();
+
+        //校验任务是否存在，获取账单类型及商户号
         MspBillDownloadRecordDTO dto = new MspBillDownloadRecordDTO();
         //取form查询条件
 		T form = getForm(dto);
@@ -49,29 +65,50 @@ public abstract class AbstractGenerateFileServiceV2<T> implements Constant, IBil
 
 		File destFile = genDestFile(form);
 		dto.setFileUrl(destFile.getPath());
-		// TODO: Rust 2018/3/29
 
-        FluentIterable<File> settleBillBeans = getFilterFiles(form);
+        List<File> settleBillBeans = getFilterFiles(form);
+        System.out.println("file size:" + settleBillBeans.size());
 
-        if (settleBillBeans.size() == 0) {
+/*        if (settleBillBeans.size() == 0) {
             System.out.println("not file wait to generate");
             return;
-        }
+        }*/
         if (!destFile.exists()) {
             Files.createParentDirs(destFile);
         }else {
             destFile.delete();
         }
-        System.out.println("write starting...");
-        long start = System.currentTimeMillis();
 
-        filterDataAndWriteCvs(settleBillBeans.iterator(), form, destFile);
+        System.out.println(("filter file end:" + watch));
 
+        watch.reset();
 
-        System.out.println("write finish cost:" + (System.currentTimeMillis() - start));
+        System.out.println("write starting..." + watch);
+
+        watch.start();
+
+		int totalCount = filterDataAndWriteCvs(settleBillBeans.iterator(), form, destFile);
+
+        System.out.println("totalCount:" + totalCount);
+        System.out.println("read write,cost:" + watch);
+
+        watch.reset();
+        watch.start();
+
+		String zipFilePathName = destFile.getPath().replace(".csv", ".zip");
+
+		FileOutputStream fos = new FileOutputStream(zipFilePathName);
+
+		ZipUtil.toZip(new ArrayList<File>(Collections.singleton(destFile)), fos);
+
+		destFile.delete();
+        totalWatch.stop();
+        System.out.println("zip cost:" + watch);
+        System.out.println("end,gen file totalCost:" + totalWatch);
+
     }
 
-    protected abstract void filterDataAndWriteCvs(Iterator<File> iterator, T form, File destFile) throws Exception;
+    protected abstract int filterDataAndWriteCvs(Iterator<File> iterator, T form, File destFile) throws Exception;
 
     private void writeCvs(File destFile, TotalSettleBillBean totalDataBean, List<DetailSettleBillBean> detailSettleBillBeans) throws IOException {
         if (!destFile.exists()) {
@@ -198,7 +235,7 @@ public abstract class AbstractGenerateFileServiceV2<T> implements Constant, IBil
 	 * @param form
 	 * @return
 	 */
-	protected abstract FluentIterable<File> getFilterFiles(T form) throws Exception;
+	protected abstract List<File> getFilterFiles(T form) throws Exception;
 
 /*	*//**
 	 * 获取结算账单明细
@@ -334,7 +371,6 @@ public abstract class AbstractGenerateFileServiceV2<T> implements Constant, IBil
 
             mappedByteBuffer.force();
             AccessController.doPrivileged(new PrivilegedAction<Object>() {
-                @Override
                 @SuppressWarnings("restriction")
                 public Object run() {
                     try {

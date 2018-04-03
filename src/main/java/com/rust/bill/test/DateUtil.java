@@ -54,8 +54,22 @@ public class DateUtil {
     public Date from;
   }
 
-
-
+  /**
+   * yyyyMMdd 转成 yyyy年MM月dd日 HH:mm:ss
+   *
+   * @param rq
+   * @return
+   */
+  public static String getDateTimeByString6(String rq) {
+    DateFormat df = new SimpleDateFormat(PATTERN_YYYY_MM_DD_3);
+    DateFormat df2 = new SimpleDateFormat(PATTERN_FULL_5);
+    String d = null;
+    try {
+      d = df2.format(df.parse(rq));
+    } catch (final Exception e) {
+    }
+    return d;
+  }
 
   // 增加或减少天数
   public static Date addDay(final Date date, final int num) {

@@ -22,6 +22,8 @@ public class DecimalUtil {
 	public static BigDecimal format2BigDecimal(String s) {
 		return new BigDecimal(s);
 	}
-
+	public static BigDecimal add(BigDecimal feeAmt, String settAmt) {
+		return	feeAmt.add(new BigDecimal(settAmt));
+	}
 
 }

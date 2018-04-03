@@ -4,8 +4,9 @@
 * Author:   Rust
 * Date:     2018/4/4 0:05
 */
-package com.rust.bill.test;
+package com.rust.bill;
 
+import com.rust.bill.test.Bill25;
 import org.junit.Test;
 
 import java.io.File;
@@ -33,7 +34,7 @@ public class TestNewFilter {
         System.out.println("time:" + (System.currentTimeMillis() - start)+ "size:" + list.size());
     }
 
-    private List<File> doFilter(File rootFile, List<File> fileList, Bill25 bill25) {
+    private List<File> doFilter(File rootFile, final List<File> fileList, final Bill25 bill25) {
         rootFile.listFiles(new FileFilter() {
             @Override
             public boolean accept(File dir) {

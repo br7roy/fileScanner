@@ -5,7 +5,7 @@
 package com.rust.bill.test;
 
 /**
- *清结算系统结算日志筛选关键字
+ *清结算系统结算日志筛选关键字支出金额
  * @author FUTANGHANG004
  * @version $Id: SettleBillBean, v 0.1 2018/3/27  FUTANGHANG004 Exp $
  */
