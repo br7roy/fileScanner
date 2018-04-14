@@ -1,28 +1,18 @@
 package com.rust.bill.test;
 
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.RandomAccessFile;
+import com.google.common.base.Stopwatch;
+import com.google.common.io.Files;
+import org.apache.commons.lang.StringUtils;
+
+import java.io.*;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.lang.StringUtils;
-
-import com.google.common.base.Stopwatch;
-import com.google.common.io.Files;
+import java.util.AbstractMap.SimpleEntry;
+import java.util.*;
 
 import static com.rust.bill.test.BillStyleConstants.DETAIL_COLUMN;
 import static com.rust.bill.test.BillStyleConstants.TOTAL_COLUMN;
@@ -87,9 +77,9 @@ public abstract class AbstractGenerateFileServiceV2<T> implements Constant, IBil
 
         watch.start();
 
-		int totalCount = filterDataAndWriteCvs(settleBillBeans.iterator(), form, destFile);
+        SimpleEntry<Integer, List<File>> simpleEntry = filterDataAndWriteCvs(settleBillBeans.iterator(), form, destFile, 5);
 
-        System.out.println("totalCount:" + totalCount);
+        System.out.println("totalCount:" + simpleEntry.getKey());
         System.out.println("read write,cost:" + watch);
 
         watch.reset();
@@ -99,16 +89,19 @@ public abstract class AbstractGenerateFileServiceV2<T> implements Constant, IBil
 
 		FileOutputStream fos = new FileOutputStream(zipFilePathName);
 
-		ZipUtil.toZip(new ArrayList<File>(Collections.singleton(destFile)), fos);
+        ZipUtil.toZip(new ArrayList<File>(simpleEntry.getValue()), fos);
 
-		destFile.delete();
+        for (int i = 0; i < simpleEntry.getValue().size(); i++) {
+            simpleEntry.getValue().get(i).delete();
+        }
+
         totalWatch.stop();
         System.out.println("zip cost:" + watch);
         System.out.println("end,gen file totalCost:" + totalWatch);
 
     }
 
-    protected abstract int filterDataAndWriteCvs(Iterator<File> iterator, T form, File destFile) throws Exception;
+    protected abstract SimpleEntry<Integer,List<File>> filterDataAndWriteCvs(Iterator<File> iterator, T form, File destFile,int upperLimit) throws Exception;
 
     private void writeCvs(File destFile, TotalSettleBillBean totalDataBean, List<DetailSettleBillBean> detailSettleBillBeans) throws IOException {
         if (!destFile.exists()) {
