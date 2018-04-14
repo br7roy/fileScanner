@@ -3,6 +3,10 @@
  */
 package com.rust.bill.test;
 
+import com.google.common.base.Preconditions;
+import org.apache.commons.lang.StringUtils;
+import sun.misc.Cleaner;
+
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
@@ -15,23 +19,14 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-
-import org.apache.commons.lang.StringUtils;
-
-import com.google.common.base.Preconditions;
+import java.util.AbstractMap.SimpleEntry;
+import java.util.*;
 
 import static com.rust.bill.test.BillStyleConstants.DETAIL_COLUMN;
 import static com.rust.bill.test.BillStyleConstants.TOTAL_COLUMN;
 import static com.rust.bill.test.DateUtil.PATTERN_FULL_5;
 import static com.rust.bill.test.DateUtil.PATTERN_YYYY_MM_DD_3;
 import static java.math.BigDecimal.ZERO;
-import sun.misc.Cleaner;
 
 /**
  * @author FUTANGHANG004
@@ -60,7 +55,7 @@ public class Bill25FileGenerateServiceImpl extends AbstractGenerateFileServiceV2
         List<File> rootFiles = getRootFiles(form, rootPath);
         System.out.println(("根据时间筛选出的清结算系统对账单目录:" + rootFiles));
 
-        List<File> files = filterFiles(form, rootFiles ,new ArrayList<File>());
+        List<File> files = filterFiles(form, rootFiles, new ArrayList<File>());
 
 
         return files;
@@ -95,7 +90,7 @@ public class Bill25FileGenerateServiceImpl extends AbstractGenerateFileServiceV2
         rootPath.listFiles(new FileFilter() {
             public boolean accept(File dir) {
                 if (dir.isDirectory()) {
-                    filterFiles(bill25,dir, fileList );
+                    filterFiles(bill25, dir, fileList);
                 } else {
                     if (dir.getParentFile().isDirectory() &&
                             dir.getParentFile().getName().compareTo(bill25.getStartDate()) > -1 &&
@@ -111,8 +106,6 @@ public class Bill25FileGenerateServiceImpl extends AbstractGenerateFileServiceV2
         return fileList;
 
 
-
-
     }
 /*    private FluentIterable<File> filterFiles(final Bill25 form, String rootPath) {
         return Files.fileTreeTraverser().breadthFirstTraversal(new File(rootPath)).filter(new Predicate<File>() {
@@ -126,14 +119,20 @@ public class Bill25FileGenerateServiceImpl extends AbstractGenerateFileServiceV2
 
 
     @Override
-    protected int filterDataAndWriteCvs(Iterator<File> fileIterator, Bill25 form, File destFile) throws Exception {
+    protected SimpleEntry<Integer, List<File>> filterDataAndWriteCvs(Iterator<File> fileIterator, Bill25 form, File destFile, int upperLimit) throws Exception {
 
         int allocate = 200000;
 
-        int row = 0;
+        int tempRow = 0;
 
-        RandomAccessFile raf  = new RandomAccessFile(destFile, "rw");
+        int totalRow = 0;
 
+        int suffix = -1;
+
+        List<File> files = new ArrayList<File>(Collections.singleton(destFile));
+
+
+        RandomAccessFile raf = new RandomAccessFile(destFile, "rw");
 
 
         BigDecimal totalFeeAmt = ZERO;
@@ -141,11 +140,12 @@ public class Bill25FileGenerateServiceImpl extends AbstractGenerateFileServiceV2
 
         reserveSpace(raf);
 
-        writeRaf(raf,Arrays.toString(DETAIL_COLUMN).substring(1, Arrays.toString(DETAIL_COLUMN).length() - 1),false);
+        writeRaf(raf, Arrays.toString(DETAIL_COLUMN).substring(1, Arrays.toString(DETAIL_COLUMN).length() - 1), false);
         newLine(raf);
 
-        do
-            try {
+        try {
+
+            while (fileIterator.hasNext()) {
                 RandomAccessFile fis = new RandomAccessFile(fileIterator.next(), "rw");
                 FileChannel channel = fis.getChannel();
 
@@ -174,8 +174,8 @@ public class Bill25FileGenerateServiceImpl extends AbstractGenerateFileServiceV2
                         if (StringUtils.isNotEmpty(line)) {
                             if (line.trim().startsWith("I") || line.trim().startsWith("O")) {
                                 String[] temp = line.trim().replace("\t", "").split(",");
-                                if ("100040090000".equals(temp[SettleBillEnum.bussinessScense.ordinal()])) {
-                                    ++row;
+                                // if ("100040090000".equals(temp[SettleBillEnum.bussinessScense.ordinal()])) {
+                                    ++tempRow;
                                     try {
 
 
@@ -202,23 +202,23 @@ public class Bill25FileGenerateServiceImpl extends AbstractGenerateFileServiceV2
                                         BigDecimal feeAmt = ZERO;
                                         // 结算金额
                                         String settleAmt = "0.00";
-                                        if ("62".equals(temp[SettleBillEnum.txnType.ordinal()]) ||
-                                                "L1".equals(temp[SettleBillEnum.txnType.ordinal()]) ||
-                                                "I1".equals(temp[SettleBillEnum.txnType.ordinal()])) {
+                                        // if ("62".equals(temp[SettleBillEnum.txnType.ordinal()]) ||
+                                        //         "L1".equals(temp[SettleBillEnum.txnType.ordinal()]) ||
+                                        //         "I1".equals(temp[SettleBillEnum.txnType.ordinal()])) {
                                             //	如果是正交易
                                             //手续费=支出金额
                                             feeAmt = DecimalUtil.format2BigDecimal(temp[SettleBillEnum.amountPayout.ordinal()]);
                                             //结算金额=参与结算金额-支出金额
                                             settleAmt = StringUtil.subtract(temp[SettleBillEnum.participateSettlementAmount.ordinal()], temp[SettleBillEnum.amountPayout.ordinal()]);
-                                        } else if ("38".equals(temp[SettleBillEnum.txnType.ordinal()]) ||
-                                                "L2".equals(temp[SettleBillEnum.txnType.ordinal()]) ||
-                                                "I2".equals(temp[SettleBillEnum.txnType.ordinal()])) {
-                                            // 如果是反交易
-                                            // 手续费=返还手续费
-                                            feeAmt = DecimalUtil.format2BigDecimal(temp[SettleBillEnum.returnFee.ordinal()]);
-                                            // 结算金额=参与结算金额-返还手续费
-                                            settleAmt = StringUtil.subtract(temp[SettleBillEnum.participateSettlementAmount.ordinal()], temp[SettleBillEnum.returnFee.ordinal()]);
-                                        }
+                                        // } else if ("38".equals(temp[SettleBillEnum.txnType.ordinal()]) ||
+                                        //         "L2".equals(temp[SettleBillEnum.txnType.ordinal()]) ||
+                                        //         "I2".equals(temp[SettleBillEnum.txnType.ordinal()])) {
+                                        //     // 如果是反交易
+                                        //     // 手续费=返还手续费
+                                        //     feeAmt = DecimalUtil.format2BigDecimal(temp[SettleBillEnum.returnFee.ordinal()]);
+                                        //     // 结算金额=参与结算金额-返还手续费
+                                        //     settleAmt = StringUtil.subtract(temp[SettleBillEnum.participateSettlementAmount.ordinal()], temp[SettleBillEnum.returnFee.ordinal()]);
+                                        // }
 
 /*                                 // 手续费=支出金额(settleBillBeans.get(i).getAmountPayout())-返还手续费(settleBillBeans.get(i).getReturnFee())
                                     BigDecimal feeAmt = DecimalUtil.subtract(temp[SettleBillEnum.amountPayout.ordinal()], temp[SettleBillEnum.returnFee.ordinal()]);
@@ -236,7 +236,46 @@ public class Bill25FileGenerateServiceImpl extends AbstractGenerateFileServiceV2
                                         e.printStackTrace();
                                     }
                                     newLine(raf);
-                                }
+                                    //    一行写完
+                                    //    明细行数等于上限值
+                                    if (tempRow == upperLimit) {
+                                        //    写入头部数据
+                                        raf.seek(0L);
+
+                                        // writeRaf(raf, "\r\n");
+                                        writeRaf(raf, "                         合并支付结算单", false);
+                                        newLine(raf);
+                                        writeRaf(raf, Arrays.toString(TOTAL_COLUMN).substring(1, Arrays.toString(TOTAL_COLUMN).length() - 1), false);
+                                        newLine(raf);
+                                        writeRaf(raf, CHAR_TAB + form.getMerchantNo());
+                                        writeRaf(raf, DateUtil.getDateTimeByString6(form.getStartDate()));
+                                        writeRaf(raf, DateUtil.getDateTimeByString6(form.getEndDate()));
+                                        writeRaf(raf, "元");
+                                        writeRaf(raf, "人民币");
+                                        writeRaf(raf, totalOrderAmt.toString());
+                                        writeRaf(raf, totalFeeAmt.toString());
+                                        writeRaf(raf, DateUtil.getCurrentDateTime(PATTERN_FULL_5));
+                                        //关闭现输出流
+                                        raf.close();
+                                        //更换输出流
+                                        File file = new File(destFile.getPath().replaceAll("[.][^.]+$", "") + CHAR_UNDERLINE + ++suffix + ".csv");
+                                        raf = new RandomAccessFile(file, "rw");
+                                        //总计数归0
+                                        totalOrderAmt = ZERO;
+                                        totalFeeAmt = ZERO;
+                                        //加入生成文件集合
+                                        files.add(file);
+                                        //预留头部位置
+                                        reserveSpace(raf);
+                                        //写入明细列
+                                        writeRaf(raf, Arrays.toString(DETAIL_COLUMN).substring(1, Arrays.toString(DETAIL_COLUMN).length() - 1), false);
+                                        newLine(raf);
+                                        //纳入总计数
+                                        totalRow += tempRow;
+                                        //重置行数
+                                        tempRow = 0;
+                                    }
+                                // }
                             }
                         }
 
@@ -257,9 +296,10 @@ public class Bill25FileGenerateServiceImpl extends AbstractGenerateFileServiceV2
                 unMap(mappedByteBuffer);
 
 
-            } catch (IOException e) {
-                throw new RuntimeException("genFinalSettleBean process fail:", e);
-            } while (fileIterator.hasNext());
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("genFinalSettleBean process fail:", e);
+        }
 
         //向头部写入总计
         raf.seek(0L);
@@ -269,7 +309,7 @@ public class Bill25FileGenerateServiceImpl extends AbstractGenerateFileServiceV2
         newLine(raf);
         writeRaf(raf, Arrays.toString(TOTAL_COLUMN).substring(1, Arrays.toString(TOTAL_COLUMN).length() - 1), false);
         newLine(raf);
-        writeRaf(raf, CHAR_TAB+form.getMerchantNo());
+        writeRaf(raf, CHAR_TAB + form.getMerchantNo());
         writeRaf(raf, DateUtil.getDateTimeByString6(form.getStartDate()));
         writeRaf(raf, DateUtil.getDateTimeByString6(form.getEndDate()));
         writeRaf(raf, "元");
@@ -278,8 +318,8 @@ public class Bill25FileGenerateServiceImpl extends AbstractGenerateFileServiceV2
         writeRaf(raf, totalFeeAmt.toString());
         writeRaf(raf, DateUtil.getCurrentDateTime(PATTERN_FULL_5));
         raf.close();
-        System.out.println("Bill25FileGenerateServiceImpl.filterDataAndWriteCvs" + row);
-        return row;
+        System.out.println("Bill25FileGenerateServiceImpl.filterDataAndWriteCvs" + (totalRow + tempRow));
+        return new SimpleEntry<Integer, List<File>>((totalRow + tempRow), files);
     }
 
     private void newLine(RandomAccessFile raf) throws IOException {
@@ -314,7 +354,6 @@ public class Bill25FileGenerateServiceImpl extends AbstractGenerateFileServiceV2
             }
         });
     }
-
 
 
     @Override
@@ -402,13 +441,15 @@ public class Bill25FileGenerateServiceImpl extends AbstractGenerateFileServiceV2
 
         return new File(path);
     }
+
     /**
      * 根据开始时间和结束时间筛选文件目录
+     *
      * @param bill25
      * @param rootPath
      * @return
      */
-    private List<File> getRootFiles( Bill25 bill25,String rootPath) {
+    private List<File> getRootFiles(Bill25 bill25, String rootPath) {
         List<File> rootFiles = new ArrayList<File>();
         Date startDate = Preconditions.checkNotNull(DateUtil.parseString2Date(bill25.getStartDate(), PATTERN_YYYY_MM_DD_3), "parseString2Date error");
         Date endDate = Preconditions.checkNotNull(DateUtil.parseString2Date(bill25.getEndDate(), PATTERN_YYYY_MM_DD_3), "parseString2Date error");
@@ -416,7 +457,7 @@ public class Bill25FileGenerateServiceImpl extends AbstractGenerateFileServiceV2
         List<Date> result = new ArrayList<Date>();
         Calendar tempStart = Calendar.getInstance();
         tempStart.setTime(startDate);
-        while(startDate.getTime()<=endDate.getTime()){
+        while (startDate.getTime() <= endDate.getTime()) {
             File file = new File(rootPath + DOT + DateUtil.formatDate(tempStart.getTime(), PATTERN_YYYY_MM_DD_3));
             if (file.isDirectory() && file.exists()) {
                 rootFiles.add(file);

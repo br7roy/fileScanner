@@ -26,7 +26,3 @@ hs_err_pid*
 .gitignore
 .idea/
 fileScanner.iml
-src/test/
-/out/
-out/
-src/main/resources/
