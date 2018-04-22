@@ -1,10 +1,10 @@
 package com.rust.bill.test;
 
-import com.google.common.base.Stopwatch;
-import com.google.common.io.Files;
-import org.apache.commons.lang.StringUtils;
-
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
@@ -12,7 +12,17 @@ import java.nio.channels.FileChannel;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.AbstractMap.SimpleEntry;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang.StringUtils;
+
+import com.google.common.base.Stopwatch;
+import com.google.common.io.Files;
 
 import static com.rust.bill.test.BillStyleConstants.DETAIL_COLUMN;
 import static com.rust.bill.test.BillStyleConstants.TOTAL_COLUMN;
@@ -77,7 +87,7 @@ public abstract class AbstractGenerateFileServiceV2<T> implements Constant, IBil
 
         watch.start();
 
-        SimpleEntry<Integer, List<File>> simpleEntry = filterDataAndWriteCvs(settleBillBeans.iterator(), form, destFile, 5);
+        SimpleEntry<Integer, List<File>> simpleEntry = filterDataAndWriteCvs(settleBillBeans.iterator(), form, destFile, 10000);
 
         System.out.println("totalCount:" + simpleEntry.getKey());
         System.out.println("read write,cost:" + watch);
