@@ -9,9 +9,10 @@ import org.junit.Test;
 import com.google.common.base.Preconditions;
 
 /**
- *
- * @author FUTANGHANG004
- * @version $Id: GoogleTest, v 0.1 2018/4/4  FUTANGHANG004 Exp $
+ * FileName:    GoogleTest
+ * Author:      Rust
+ * Date:        2018/4/14
+ * Description:
  */
 public class GoogleTest {
     @Test

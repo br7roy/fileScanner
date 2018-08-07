@@ -65,10 +65,9 @@ public class LogMonitor {
                 if (s.contains(stK1) && s.contains(stK2)) {
                     try {
                         if (uidResult == null) {
-                            uidResult.append(s.substring(s.indexOf(stK2)).substring(0, s.substring(s.indexOf(stK2))
-                                    .indexOf(","))).append(",");
-                        } else uidResult.append(System.lineSeparator()).append(s.substring(s.indexOf(stK2))
-                                .substring(0, s.substring(s.indexOf(stK2)).indexOf(","))).append(",");
+                            uidResult.append(s.substring(s.indexOf(stK2)), 0, s.substring(s.indexOf(stK2))
+                                    .indexOf(",")).append(",");
+                        } else uidResult.append(System.lineSeparator()).append(s.substring(s.indexOf(stK2)), 0, s.substring(s.indexOf(stK2)).indexOf(",")).append(",");
                     } catch (RuntimeException e) {
                         if (flg != 0) {
                             System.out.println("检测到特殊日志无逗号结尾");

@@ -14,9 +14,10 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 
 /**
- *
- * @author FUTANGHANG004
- * @version $Id: BufferReadWrite, v 0.1 2018/4/3  FUTANGHANG004 Exp $
+ * FileName:    BufferReadWrite
+ * Author:      Rust
+ * Date:        2018/4/14
+ * Description:
  */
 public class BufferReadWrite {
 	private static String dot = File.separator;
