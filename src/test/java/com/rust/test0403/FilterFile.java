@@ -4,17 +4,17 @@
  */
 package com.rust.test0403;
 
-import com.rust.bill.test.Bill25;
-import org.junit.Test;
-
 import java.io.File;
 import java.io.FileFilter;
 
+import org.junit.Test;
+
+import com.rust.bill.test.Bill25;
+
 /**
- * FileName:    FilterFile
- * Author:      Rust
- * Date:        2018/4/14
- * Description:
+ *
+ * @author FUTANGHANG004
+ * @version $Id: FilterFile, v 0.1 2018/4/3  FUTANGHANG004 Exp $
  */
 public class FilterFile {
 	@Test
